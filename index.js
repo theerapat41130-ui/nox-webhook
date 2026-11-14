@@ -1,11 +1,11 @@
-// NOX TOPSPEED - Webhook B v4 Final - มีหมุดฟ้า + ปุ่มปิดเปิด ครบทุกอย่าง
-const express = require('express');
+// NOX TOPSPEED - Webhook B v5 Final - หน้าเดียวจบ ปุ่มปิดเปิด + หมุดฟ้า
+const 【entity-express¦canonical_name=express】 = require('【entity-express¦canonical_name=express】');
 const crypto = require('crypto');
-const app = express();
-app.use(express.json({
+const app = 【entity-express¦canonical_name=express】();
+app.use(【entity-express¦canonical_name=express】.json({
   verify: (req, res, buf) => { req.rawBody = buf; }
 }));
-app.use(express.urlencoded({ extended: true }));
+app.use(【entity-express¦canonical_name=express】.urlencoded({ extended: true }));
 
 const CHANNEL_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN || '';
 const CHANNEL_SECRET = process.env.CHANNEL_SECRET || '';
@@ -16,13 +16,12 @@ const BLOCK_WORDS = (process.env.BLOCK_WORDS || 'ฝาก,ถอน,ราค�
 const LICENSE_CODE = process.env.LICENSE_CODE || '';
 const LICENSE_EXPIRE = process.env.LICENSE_EXPIRE || '';
 
-// ===== หมุดฟ้า / รายชื่อที่อนุญาต - หลักการ NOX ห้ามทิ้ง =====
-const ALLOWED_NAMES = C4 (process.env.ALLOWED_NAMES || '').split(',').map(s => s.trim()).filter(Boolean);
-const ALLOWED_USER_IDS = (process.env.ALLOWED_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
+// ===== ที่วางชื่อหมุดฟ้า - ที่เดียวจบ ไม่ต้องเข้า Render แล้ว =====
+// ถ้าตอนแรกมึงใส่ไว้ใน Render มันจะดึงมาโชว์ในหน้านี้เลย ถ้าไม่ได้ใส่ก็เพิ่มในหน้านี้ได้เลย
+let ALLOWED_NAMES = (process.env.ALLOWED_NAMES || '').split(',').map(s => s.trim()).filter(Boolean);
+let ALLOWED_USER_IDS = (process.env.ALLOWED_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
-// ===== ปุ่มปิดเปิด - เปิดอยู่ตอนแรก =====
 let B_ENABLED = true;
-
 const LAST_REPLY = new Map();
 
 function isLicenseOK(){
@@ -78,38 +77,66 @@ function verifySignature(req){
   return hash === sig;
 }
 
-// ===== หน้าปุ่มปิดเปิด =====
+// ===== หน้าควบคุมที่เดียวจบ =====
 app.get('/control', (req, res) => {
+  const namesHtml = ALLOWED_NAMES.length === 0
+    ? '<p style="color:#ff0">⚠️ ตอนนี้ยังไม่มีชื่อหมุดฟ้าเลย = รับทุกคนอยู่ (โหมดทดลอง)<br>พิมพ์ชื่อข้างล่างแล้วกดเพิ่ม เพื่อล็อกให้รับแค่คนนั้น</p>'
+    : ALLOWED_NAMES.map((n,i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#333;padding:12px 15px;border-radius:10px;margin:8px 0">
+        <span style="font-size:20px">📌 ${n}</span>
+        <form method="POST" action="/control/remove-name" style="margin:0"><input type="hidden" name="index" value="${i}"><button type="submit" style="background:#ff3333;color:#fff;border:none;padding:8px 15px;border-radius:8px;font-size:16px;cursor:pointer">ลบ</button></form>
+      </div>`).join('');
   res.send(`
     <html><head><meta name="viewport" content="width=device-width, initial-scale=1"><style>
-    body{font-family:sans-serif;text-align:center;padding:30px;background:#111;color:#fff}
-    h1{font-size:32px;margin:0} p{color:#aaa}
-    .status{font-size:26px;margin:25px 0;padding:25px;border-radius:15px;background:${B_ENABLED ? '#00ff88' : '#ff3333'};color:#000;font-weight:bold}
-    button{font-size:28px;padding:20px 40px;margin:10px;border:none;border-radius:15px;cursor:pointer;width:90%;max-width:400px}
+    body{font-family:sans-serif;text-align:center;padding:20px;background:#111;color:#fff;max-width:600px;margin:0 auto}
+    h1{font-size:30px;margin:10px 0} p{color:#aaa}
+    .status{font-size:24px;margin:20px 0;padding:20px;border-radius:15px;background:${B_ENABLED ? '#00ff88' : '#ff3333'};color:#000;font-weight:bold}
+    button{font-size:22px;padding:15px 25px;margin:8px;border:none;border-radius:12px;cursor:pointer}
     .on{background:#00ff88} .off{background:#ff3333;color:#fff}
-    .box{background:#222;padding:20px;border-radius:15px;margin-top:20px;text-align:left;font-size:16px;line-height:1.8}
+    .box{background:#222;padding:20px;border-radius:15px;margin-top:20px;text-align:left}
+    input[type=text]{width:100%;padding:15px;font-size:20px;border-radius:10px;border:none;margin:10px 0;box-sizing:border-box}
+    .addbtn{background:#00aaff;color:#fff;width:100%}
     </style></head><body>
     <h1>NOX TOPSPEED B</h1>
-    <p>ปุ่มปิดเปิด Webhook B</p>
+    <p>หน้าควบคุมที่เดียวจบ</p>
     <div class="status">${B_ENABLED ? '🟢 กำลังเปิดอยู่ - ตอบลูกค้าแล้ว' : '🔴 ปิดอยู่ - ไม่ตอบใคร'}</div>
-    <form method="POST" action="/control/on"><button class="on" type="submit">✅ เปิด NOX</button></form>
-    <form method="POST" action="/control/off"><button class="off" type="submit">🛑 ปิด NOX</button></form>
+    <form method="POST" action="/control/on"><button class="on" type="submit" style="width:100%">✅ เปิด NOX</button></form>
+    <form method="POST" action="/control/off"><button class="off" type="submit" style="width:100%">🛑 ปิด NOX</button></form>
+
     <div class="box">
-    <b>วิธีใช้:</b><br>
-    • กดปิด = B จะไม่ตอบใครเลย<br>
-    • กดเปิด = B กลับมาตอบปกติ<br>
-    • หรือพิมพ์ในแชทว่า <b>ปิดnox</b> / <b>เปิดnox</b> ก็ได้<br>
-    • หมุดฟ้าตอนนี้: ${ALLOWED_NAMES.length > 0 ? ALLOWED_NAMES.join(', ') : 'รับทุกคน (ทดลอง)'}<br>
-    • ข้อความตอบ: ${REPLY_TEXT}
+      <h2 style="margin:0 0 10px 0">📌 รายชื่อหมุดฟ้า - รับแค่คนนี้เท่านั้น</h2>
+      ${namesHtml}
+      <form method="POST" action="/control/add-name">
+        <input type="text" name="name" placeholder="พิมพ์ชื่อ LINE ลูกค้า เช่น เจ้าสัวสามขุม" required>
+        <button class="addbtn" type="submit">➕ เพิ่มชื่อหมุดฟ้า</button>
+      </form>
+      <p style="font-size:14px">* ชื่อต้องตรงกับชื่อ LINE ของลูกค้าเป๊ะๆ ถ้าใส่ชื่อไว้แล้ว คนที่ไม่มีชื่อจะไม่ได้รับคำตอบเลย</p>
+      <p style="font-size:14px">* ถ้าลบชื่อออกหมด จะกลับไปเป็นรับทุกคน (โหมดทดลอง)</p>
+    </div>
+
+    <div class="box" style="font-size:16px;line-height:1.8">
+      <b>ข้อมูลตอนนี้:</b><br>
+      - ข้อความตอบ: ${REPLY_TEXT}<br>
+      - คำสั่งในแชท: พิมพ์ <b>ปิดnox</b> / <b>เปิดnox</b> ก็ได้
     </div>
     </body></html>
   `);
 });
 app.post('/control/on', (req, res) => { B_ENABLED = true; console.log('แอดมินกดเปิด NOX'); res.redirect('/control'); });
 app.post('/control/off', (req, res) => { B_ENABLED = false; console.log('แอดมินกดปิด NOX'); res.redirect('/control'); });
+app.post('/control/add-name', (req, res) => {
+  const n = (req.body.name || '').trim();
+  if(n && !ALLOWED_NAMES.includes(n)){ ALLOWED_NAMES.push(n); console.log('เพิ่มหมุดฟ้า:', n); }
+  res.redirect('/control');
+});
+app.post('/control/remove-name', (req, res) => {
+  const idx = parseInt(req.body.index);
+  if(!isNaN(idx) && idx >= 0 && idx < ALLOWED_NAMES.length){ console.log('ลบหมุดฟ้า:', ALLOWED_NAMES[idx]); ALLOWED_NAMES.splice(idx, 1); }
+  res.redirect('/control');
+});
 
 app.get('/', (req, res) => {
-  res.send('NOX TOPSPEED Webhook B v4 พร้อมแล้ว | เปิดอยู่: ' + (B_ENABLED ? 'ใช่' : 'ไม่') + ' | License: ' + (isLicenseOK() ? 'OK' : 'หมดอายุ') + ' | หมุดฟ้า: ' + (ALLOWED_NAMES.length > 0 ? ALLOWED_NAMES.join(',') : 'รับทุกคน'));
+  res.send('NOX TOPSPEED Webhook B v5 พร้อมแล้ว | เปิดอยู่: ' + (B_ENABLED ? 'ใช่' : 'ไม่') + ' | หมุดฟ้า: ' + (ALLOWED_NAMES.length > 0 ? ALLOWED_NAMES.join(',') : 'รับทุกคน'));
 });
 
 app.post('/webhook', async (req, res) => {
@@ -119,7 +146,6 @@ app.post('/webhook', async (req, res) => {
     try{
       if(ev.type !== 'message') continue;
       if(ev.message.type !== 'text') {
-        // ถ้าไม่ใช่ข้อความตัวอักษร ให้เช็คปุ่มปิดเปิดก่อนแล้วข้ามเลย
         if(!B_ENABLED) continue;
         if(!isLicenseOK()) continue;
         const userId2 = ev.source?.userId || 'unknown';
@@ -136,36 +162,21 @@ app.post('/webhook', async (req, res) => {
         }
         continue;
       }
-
       const text = (ev.message.text || '').trim();
       const userId = ev.source?.userId || 'unknown';
       const lower = text.toLowerCase();
-
-      // ===== คำสั่งปิดเปิดจากแชท - พิมพ์ ปิดnox / เปิดnox =====
       if(lower === 'ปิดnox' || lower === 'ปิด nox' || lower === 'nox off'){
         B_ENABLED = false;
-        console.log('สั่งปิด NOX จากแชท:', userId);
         await sendReply(ev.replyToken, '🛑 ปิด NOX แล้ว จะไม่ตอบใครจนกว่าจะพิมพ์ เปิดnox');
         continue;
       }
       if(lower === 'เปิดnox' || lower === 'เปิด nox' || lower === 'nox on'){
         B_ENABLED = true;
-        console.log('สั่งเปิด NOX จากแชท:', userId);
         await sendReply(ev.replyToken, '✅ เปิด NOX แล้ว พร้อมตอบลูกค้า');
         continue;
       }
-
-      // เช็คปุ่มปิดเปิดก่อนเลย ถ้าปิดอยู่ไม่ตอบใคร
-      if(!B_ENABLED){
-        console.log('NOX ปิดอยู่ ไม่ตอบ');
-        continue;
-      }
-      if(!isLicenseOK()){
-        console.log('License หมดอายุ ไม่ตอบ');
-        continue;
-      }
-
-      // ===== หมุดฟ้า - ถ้าไม่ใช่คนที่ปักหมุดไว้ ไม่ตอบ =====
+      if(!B_ENABLED) continue;
+      if(!isLicenseOK()) continue;
       if(ALLOWED_NAMES.length > 0 || ALLOWED_USER_IDS.length > 0){
         if(ALLOWED_USER_IDS.includes(userId)){
           console.log('หมุดฟ้า ผ่าน UserId:', userId);
@@ -176,25 +187,13 @@ app.post('/webhook', async (req, res) => {
             console.log('ไม่ใช่หมุดฟ้า ข้าม:', displayName);
             continue;
           }
-          console.log('หมุดฟ้า ผ่านชื่อ:', displayName);
         }
       }
-
-      // กันสแปมแบบรับทีละคน
       if(SINGLE_MODE === '1'){
         const last = LAST_REPLY.get(userId) || 0;
-        if(Date.now() - last < 5000){
-          console.log('กันสแปม ข้าม:', userId);
-          continue;
-        }
+        if(Date.now() - last < 5000) continue;
       }
-
-      console.log('ได้รับ:', text);
-      if(!isLottery(text)){
-        console.log('ไม่ใช่เลขหวย ข้าม:', text);
-        continue;
-      }
-
+      if(!isLottery(text)) continue;
       const status = await sendReply(ev.replyToken, REPLY_TEXT);
       console.log('ส่งแล้ว status:', status);
       LAST_REPLY.set(userId, Date.now());
@@ -204,4 +203,4 @@ app.post('/webhook', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('NOX B v4 พร้อมที่พอร์ต ' + PORT));
+app.listen(PORT, () => console.log('NOX B v5 พร้อมที่พอร์ต ' + PORT));
