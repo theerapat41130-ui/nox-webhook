@@ -17,7 +17,7 @@ const LICENSE_CODE = process.env.LICENSE_CODE || '';
 const LICENSE_EXPIRE = process.env.LICENSE_EXPIRE || '';
 
 // ===== หมุดฟ้า / รายชื่อที่อนุญาต - หลักการ NOX ห้ามทิ้ง =====
-const ALLOWED_NAMES = (process.env.ALLOWED_NAMES || '').split(',').map(s => s.trim()).filter(Boolean);
+const ALLOWED_NAMES = C4 (process.env.ALLOWED_NAMES || '').split(',').map(s => s.trim()).filter(Boolean);
 const ALLOWED_USER_IDS = (process.env.ALLOWED_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
 // ===== ปุ่มปิดเปิด - เปิดอยู่ตอนแรก =====
