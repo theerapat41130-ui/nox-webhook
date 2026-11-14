@@ -1,11 +1,11 @@
 // NOX TOPSPEED - Webhook B v5 Final - หน้าเดียวจบ ปุ่มปิดเปิด + หมุดฟ้า
-const 【entity-express¦canonical_name=express】 = require('【entity-express¦canonical_name=express】');
+const express = require('express');
 const crypto = require('crypto');
-const app = 【entity-express¦canonical_name=express】();
-app.use(【entity-express¦canonical_name=express】.json({
+const app = express();
+app.use(express.json({
   verify: (req, res, buf) => { req.rawBody = buf; }
 }));
-app.use(【entity-express¦canonical_name=express】.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 const CHANNEL_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN || '';
 const CHANNEL_SECRET = process.env.CHANNEL_SECRET || '';
@@ -16,7 +16,6 @@ const BLOCK_WORDS = (process.env.BLOCK_WORDS || 'ฝาก,ถอน,ราค�
 const LICENSE_CODE = process.env.LICENSE_CODE || '';
 const LICENSE_EXPIRE = process.env.LICENSE_EXPIRE || '';
 
-// ===== ที่วางชื่อหมุดฟ้า - ที่เดียวจบ ไม่ต้องเข้า Render แล้ว =====
 let ALLOWED_NAMES = (process.env.ALLOWED_NAMES || '').split(',').map(s => s.trim()).filter(Boolean);
 let ALLOWED_USER_IDS = (process.env.ALLOWED_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
