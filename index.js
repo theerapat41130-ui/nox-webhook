@@ -17,7 +17,6 @@ const LICENSE_CODE = process.env.LICENSE_CODE || '';
 const LICENSE_EXPIRE = process.env.LICENSE_EXPIRE || '';
 
 // ===== ที่วางชื่อหมุดฟ้า - ที่เดียวจบ ไม่ต้องเข้า Render แล้ว =====
-// ถ้าตอนแรกมึงใส่ไว้ใน Render มันจะดึงมาโชว์ในหน้านี้เลย ถ้าไม่ได้ใส่ก็เพิ่มในหน้านี้ได้เลย
 let ALLOWED_NAMES = (process.env.ALLOWED_NAMES || '').split(',').map(s => s.trim()).filter(Boolean);
 let ALLOWED_USER_IDS = (process.env.ALLOWED_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -77,7 +76,6 @@ function verifySignature(req){
   return hash === sig;
 }
 
-// ===== หน้าควบคุมที่เดียวจบ =====
 app.get('/control', (req, res) => {
   const namesHtml = ALLOWED_NAMES.length === 0
     ? '<p style="color:#ff0">⚠️ ตอนนี้ยังไม่มีชื่อหมุดฟ้าเลย = รับทุกคนอยู่ (โหมดทดลอง)<br>พิมพ์ชื่อข้างล่างแล้วกดเพิ่ม เพื่อล็อกให้รับแค่คนนั้น</p>'
@@ -102,7 +100,6 @@ app.get('/control', (req, res) => {
     <div class="status">${B_ENABLED ? '🟢 กำลังเปิดอยู่ - ตอบลูกค้าแล้ว' : '🔴 ปิดอยู่ - ไม่ตอบใคร'}</div>
     <form method="POST" action="/control/on"><button class="on" type="submit" style="width:100%">✅ เปิด NOX</button></form>
     <form method="POST" action="/control/off"><button class="off" type="submit" style="width:100%">🛑 ปิด NOX</button></form>
-
     <div class="box">
       <h2 style="margin:0 0 10px 0">📌 รายชื่อหมุดฟ้า - รับแค่คนนี้เท่านั้น</h2>
       ${namesHtml}
@@ -113,7 +110,6 @@ app.get('/control', (req, res) => {
       <p style="font-size:14px">* ชื่อต้องตรงกับชื่อ LINE ของลูกค้าเป๊ะๆ ถ้าใส่ชื่อไว้แล้ว คนที่ไม่มีชื่อจะไม่ได้รับคำตอบเลย</p>
       <p style="font-size:14px">* ถ้าลบชื่อออกหมด จะกลับไปเป็นรับทุกคน (โหมดทดลอง)</p>
     </div>
-
     <div class="box" style="font-size:16px;line-height:1.8">
       <b>ข้อมูลตอนนี้:</b><br>
       - ข้อความตอบ: ${REPLY_TEXT}<br>
